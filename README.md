@@ -35,6 +35,8 @@ Please list two areas of the assignment you'd like to **discuss further with you
 Here's a walkthrough of implemented user stories:
 
 <img src='http://i.imgur.com/7LO9vHC.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />  
+
+Here's a demo of a network error
 <img src='http://i.imgur.com/emmIjwb.gif' title='Network Error Demo' width='' alt='Network Error Demo' />
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
