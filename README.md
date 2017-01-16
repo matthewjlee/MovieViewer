@@ -27,15 +27,17 @@ The following **additional** features are implemented:
 
 Please list two areas of the assignment you'd like to **discuss further with your peers** during the next class (examples include better ways to implement something, how to extend your app in certain ways, etc):
 
-1. 
-2. 
+1. Make images fade in.
+2. Allow users to search for a movie.
 
 ## Video Walkthrough 
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='http://i.imgur.com/7LO9vHC.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />  
 
+Here's a demo of a network error  
+<img src='http://i.imgur.com/emmIjwb.gif' title='Network Error Demo' width='' alt='Network Error Demo' />
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
