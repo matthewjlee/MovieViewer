@@ -17,11 +17,13 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     @IBOutlet weak var searchBar: UISearchBar!
     
     var movies: [NSDictionary]? //maybe nothing at all (nil)
+    var filteredData: [NSDictionary]!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         //had to inherit uisearchbardelegate properties before declaring this
         searchBar.delegate = self
+        self.filteredData = self.movies
         
         //initialize ui refresh control
         let refreshControl = UIRefreshControl()
@@ -66,6 +68,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                     
                     //movies = dataDictionary won't work cuz not dictionary
                     self.movies = (dataDictionary["results"] as! [NSDictionary])
+                    self.filteredData = self.movies
                     self.tableView.reloadData() //network fetching works slower than loading a view controller
                     //end refreshing after request is complete
                     refreshControl.endRefreshing()
@@ -85,49 +88,50 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         //movies number
         
         //optional binding
-        if let movies = movies {
-            return movies.count
-        } else {
-            return 0
-        }
+        return self.filteredData?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell", for: indexPath) as! MovieCell
-        let movie = movies![indexPath.row] //! means that you are absolutely positive that something exists at row
-        let title = movie["title"] as! String
-        let overview = movie["overview"] as! String
-        let baseUrl = "https://image.tmdb.org/t/p/w500"
-        let posterPath = movie["poster_path"] as! String
-        let imageUrl = NSURL(string: baseUrl + posterPath)
         
-        
-        cell.titleLabel.text = title
-        cell.overviewLabel.text = overview
-        cell.posterView.setImageWith(imageUrl as! URL)
-        print("row \(indexPath.row)")
+        if let filteredData = self.filteredData {
+            let movie = filteredData[indexPath.row] //! means that you are absolutely positive that something exists at row
+            let title = movie["title"] as! String
+            let overview = movie["overview"] as! String
+            let baseUrl = "https://image.tmdb.org/t/p/w500"
+            let posterPath = movie["poster_path"] as! String
+            let imageUrl = NSURL(string: baseUrl + posterPath)
+            
+            //fading in an image loaded from the network
+            let imageRequest = NSURLRequest(url: imageUrl as! URL)
+            
+            
+            cell.titleLabel.text = title
+            cell.overviewLabel.text = overview
+            cell.posterView.setImageWith(imageUrl as! URL)
+        }
+
+        //print("row \(indexPath.rows)")
         return cell
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        var movieTitles: [String]?
-        if let count = movies?.count {
-            for index in 0..<count {
-                let movie = movies![index]
-                movieTitles?.append(movie["title"] as! String)
+        if searchText.isEmpty {
+            self.filteredData = self.movies
+            
+        } else {
+            if let movies = movies as? [[String: Any]] {
+                self.filteredData = []
+                for movie in movies {
+                    if let title = movie["title"] as? String {
+                        if (title.range(of: searchText, options: .caseInsensitive) != nil) {
+                            self.filteredData.append(movie as NSDictionary)
+                        }
+                    }
+                }
             }
         }
-        
-        print(movies?.count)
-        
-        for i in 0..<5 {
-            print(movieTitles?[i])
-        }
-        
-        var filteredData: [String]!
-        filteredData = searchText.isEmpty ? movieTitles : movieTitles?.filter({(dataString: String) -> Bool in
-            return dataString.range(of: searchText, options: .caseInsensitive) != nil
-        })
         
         self.tableView.reloadData()
     }
