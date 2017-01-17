@@ -88,7 +88,11 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         //movies number
         
         //optional binding
-        return self.filteredData?.count ?? 0
+        if let filteredData = filteredData {
+            return filteredData.count
+        } else {
+            return 0
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -108,7 +112,27 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             
             cell.titleLabel.text = title
             cell.overviewLabel.text = overview
-            cell.posterView.setImageWith(imageUrl as! URL)
+            //cell.posterView.setImageWith(imageUrl as! URL)
+            
+            cell.posterView.setImageWith(imageRequest as URLRequest, placeholderImage: nil,
+                success: { (imageRequest, imageResponse, image) -> Void in
+                    
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        print("Image was NOT cached, fade in image")
+                        cell.posterView.alpha = 0.0
+                        cell.posterView.image = image
+                        UIView.animate(withDuration: 1, animations: { () -> Void in
+                            cell.posterView.alpha = 1.0
+                        })
+                    } else {
+                        print("Image was cached so just update the image")
+                        cell.posterView.image = image
+                    }
+            },
+            failure: { (imageRequest, imageResponse, error) -> Void in
+                //do something
+            })
         }
 
         //print("row \(indexPath.rows)")
