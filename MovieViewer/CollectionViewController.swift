@@ -1,8 +1,8 @@
 //
-//  MoviesViewController.swift
+//  CollectionViewController.swift
 //  MovieViewer
 //
-//  Created by Matthew Lee on 1/12/17.
+//  Created by Matthew Lee on 1/16/17.
 //  Copyright © 2017 Matthew Lee. All rights reserved.
 //
 
@@ -10,35 +10,29 @@ import UIKit
 import AFNetworking
 import MBProgressHUD
 
-class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+class CollectionViewController: UIViewController, UICollectionViewDelegate, UISearchBarDelegate {
 
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var errorMessage: UIView!
-    @IBOutlet weak var searchBar: UISearchBar!
-    
     var movies: [NSDictionary]? //maybe nothing at all (nil)
     var filteredData: [NSDictionary]!
     
+    @IBOutlet weak var searchBar: UISearchBar!
+    @IBOutlet weak var collectionView: UICollectionView!
+   
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        // Do any additional setup after loading the view.
+        collectionView.dataSource = self
+        
         //had to inherit uisearchbardelegate properties before declaring this
         searchBar.delegate = self
         self.filteredData = self.movies
-        
-        //initialize ui refresh control
-        let refreshControl = UIRefreshControl()
-        refreshControl.addTarget(self, action: #selector(refreshControlAction(refreshControl:)), for: UIControlEvents.valueChanged)
-        //add refresh control to table view
-        tableView.insertSubview(refreshControl, at: 0)
-    }
     
-    func refreshControlAction (refreshControl: UIRefreshControl) {
         //need to set the view controller's data source and delegate as the cell (movie cell)
-        errorMessage.isHidden = true
-        tableView.dataSource = self
-        tableView.delegate = self
+        //errorMessage.isHidden = true
+        collectionView.dataSource = self
+        collectionView.delegate = self
         //console will only print cells that are visible
-        
         // Do any additional setup after loading the view.
         
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
@@ -53,9 +47,9 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             
             guard error == nil else {
                 print(error)
-                self.errorMessage.isHidden = false
+                //self.errorMessage.isHidden = false
                 MBProgressHUD.hide(for: self.view, animated: true)
-                refreshControl.endRefreshing()
+                //refreshControl.endRefreshing()
                 return
             }
             
@@ -69,9 +63,9 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                     //movies = dataDictionary won't work cuz not dictionary
                     self.movies = (dataDictionary["results"] as! [NSDictionary])
                     self.filteredData = self.movies
-                    self.tableView.reloadData() //network fetching works slower than loading a view controller
+                    self.collectionView.reloadData() //network fetching works slower than loading a view controller
                     //end refreshing after request is complete
-                    refreshControl.endRefreshing()
+                    //refreshControl.endRefreshing()
                 }
             }
         }
@@ -83,17 +77,26 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         // Dispose of any resources that can be recreated.
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        //return movies?.count
-        //movies number
-        
-        //optional binding
+
+    /*
+    // MARK: - Navigation
+
+    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        // Get the new view controller using segue.destinationViewController.
+        // Pass the selected object to the new view controller.
+    }
+    */
+
+}
+
+extension CollectionViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return self.filteredData?.count ?? 0
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell", for: indexPath) as! MovieCell
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MovieCollectionCell", for: indexPath as IndexPath) as! MovieCollectionCell
         
         if let filteredData = self.filteredData {
             let movie = filteredData[indexPath.row] //! means that you are absolutely positive that something exists at row
@@ -106,16 +109,15 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             //fading in an image loaded from the network
             let imageRequest = NSURLRequest(url: imageUrl as! URL)
             
-            cell.titleLabel.text = title
-            cell.overviewLabel.text = overview
-            cell.posterView.setImageWith(imageUrl as! URL)
+            
+            cell.image.setImageWith(imageUrl as! URL)
         }
-
-        //print("row \(indexPath.rows)")
+        
         return cell
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        print("reach here")
         if searchText.isEmpty {
             self.filteredData = self.movies
             
@@ -132,17 +134,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             }
         }
         
-        self.tableView.reloadData()
+        self.collectionView.reloadData()
     }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
+
