@@ -39,6 +39,10 @@ Here's a demo of a network error
 <img src='http://i.imgur.com/emmIjwb.gif' title='Network Error Demo' width='' alt='Network Error Demo' />
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
+Here's a demo of the Collection View implementation.  
+<img src='http://i.imgur.com/EeSu6ug.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />  
+
+
 ## Notes
 
 Describe any challenges encountered while building the app.
