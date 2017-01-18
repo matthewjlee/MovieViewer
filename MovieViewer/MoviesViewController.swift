@@ -18,31 +18,33 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     
     var movies: [NSDictionary]? //maybe nothing at all (nil)
     var filteredData: [NSDictionary]!
+    var endpoint: String!
+    let refreshControl = UIRefreshControl()
+    var hasLoaded = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         //had to inherit uisearchbardelegate properties before declaring this
         searchBar.delegate = self
         self.filteredData = self.movies
+        self.hasLoaded = true
         
-        //initialize ui refresh control
-        let refreshControl = UIRefreshControl()
+        //need to set the view controller's data source and delegate as the cell (movie cell)
+        errorMessage.isHidden = true
+        tableView.dataSource = self
+        tableView.delegate = self
+        
+        networkRequest()
+        
         refreshControl.addTarget(self, action: #selector(refreshControlAction(refreshControl:)), for: UIControlEvents.valueChanged)
         //add refresh control to table view
         tableView.insertSubview(refreshControl, at: 0)
     }
     
-    func refreshControlAction (refreshControl: UIRefreshControl) {
-        //need to set the view controller's data source and delegate as the cell (movie cell)
-        errorMessage.isHidden = true
-        tableView.dataSource = self
-        tableView.delegate = self
-        //console will only print cells that are visible
-        
-        // Do any additional setup after loading the view.
-        
+    func networkRequest() {
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")!
+        let url = URL(string: "https://api.themoviedb.org/3/movie/\(endpoint!)?api_key=\(apiKey)")!
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
         let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main)
         
@@ -55,7 +57,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                 print(error)
                 self.errorMessage.isHidden = false
                 MBProgressHUD.hide(for: self.view, animated: true)
-                refreshControl.endRefreshing()
+                self.refreshControl.endRefreshing()
                 return
             }
             
@@ -71,11 +73,18 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                     self.filteredData = self.movies
                     self.tableView.reloadData() //network fetching works slower than loading a view controller
                     //end refreshing after request is complete
-                    refreshControl.endRefreshing()
+                    if self.hasLoaded == true {
+                        self.refreshControl.endRefreshing()
+                    }
                 }
             }
         }
         task.resume()
+
+    }
+    
+    func refreshControlAction (refreshControl: UIRefreshControl) {
+        networkRequest()
     }
 
     override func didReceiveMemoryWarning() {
@@ -104,35 +113,36 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             let title = movie["title"] as! String
             let overview = movie["overview"] as! String
             let baseUrl = "https://image.tmdb.org/t/p/w500"
-            let posterPath = movie["poster_path"] as! String
-            let imageUrl = NSURL(string: baseUrl + posterPath)
-            
-            //fading in an image loaded from the network
-            let imageRequest = NSURLRequest(url: imageUrl as! URL)
-            
-            cell.titleLabel.text = title
-            cell.overviewLabel.text = overview
-            //cell.posterView.setImageWith(imageUrl as! URL)
-            
-            cell.posterView.setImageWith(imageRequest as URLRequest, placeholderImage: nil,
-                success: { (imageRequest, imageResponse, image) -> Void in
-                    
-                    // imageResponse will be nil if the image is cached
-                    if imageResponse != nil {
-                        print("Image was NOT cached, fade in image")
-                        cell.posterView.alpha = 0.0
-                        cell.posterView.image = image
-                        UIView.animate(withDuration: 1, animations: { () -> Void in
-                            cell.posterView.alpha = 1.0
-                        })
-                    } else {
-                        print("Image was cached so just update the image")
-                        cell.posterView.image = image
-                    }
-            },
-            failure: { (imageRequest, imageResponse, error) -> Void in
-                //do something
-            })
+            if let posterPath = movie["poster_path"] as? String {
+                let imageUrl = NSURL(string: baseUrl + posterPath)
+                
+                //fading in an image loaded from the network
+                let imageRequest = NSURLRequest(url: imageUrl as! URL)
+                
+                cell.titleLabel.text = title
+                cell.overviewLabel.text = overview
+                //cell.posterView.setImageWith(imageUrl as! URL)
+                
+                cell.posterView.setImageWith(imageRequest as URLRequest, placeholderImage: nil,
+                    success: { (imageRequest, imageResponse, image) -> Void in
+                        
+                        // imageResponse will be nil if the image is cached
+                        if imageResponse != nil {
+                            print("Image was NOT cached, fade in image")
+                            cell.posterView.alpha = 0.0
+                            cell.posterView.image = image
+                            UIView.animate(withDuration: 1, animations: { () -> Void in
+                                cell.posterView.alpha = 1.0
+                            })
+                        } else {
+                            print("Image was cached so just update the image")
+                            cell.posterView.image = image
+                        }
+                },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+                    //do something
+                })
+            }
         }
 
         //print("row \(indexPath.rows)")
@@ -159,14 +169,21 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         self.tableView.reloadData()
     }
 
-    /*
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        let cell = sender as! UITableViewCell
+        let indexPath = tableView.indexPath(for: cell)
+        let movie = movies![indexPath!.row]
+        
+        let detailViewController = segue.destination as! DetailViewController //detailviewcontroller is just uiviewcontroller (not subclass)
+        detailViewController.movie = movie
+        
+        print("prepare for segue called")
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
     }
-    */
 
 }
