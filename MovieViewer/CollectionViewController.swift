@@ -98,6 +98,7 @@ extension CollectionViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MovieCollectionCell", for: indexPath as IndexPath) as! MovieCollectionCell
         
+        
         if let filteredData = self.filteredData {
             let movie = filteredData[indexPath.row] //! means that you are absolutely positive that something exists at row
             let title = movie["title"] as! String

@@ -92,6 +92,10 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         // Dispose of any resources that can be recreated.
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         //return movies?.count
         //movies number
@@ -108,11 +112,17 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell", for: indexPath) as! MovieCell
         
+        // Use a red color when the user selects the cell
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = UIColor.gray
+        cell.selectedBackgroundView = backgroundView
+        
         if let filteredData = self.filteredData {
             let movie = filteredData[indexPath.row] //! means that you are absolutely positive that something exists at row
             let title = movie["title"] as! String
             let overview = movie["overview"] as! String
             let baseUrl = "https://image.tmdb.org/t/p/w500"
+            
             if let posterPath = movie["poster_path"] as? String {
                 let imageUrl = NSURL(string: baseUrl + posterPath)
                 
@@ -121,7 +131,6 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                 
                 cell.titleLabel.text = title
                 cell.overviewLabel.text = overview
-                //cell.posterView.setImageWith(imageUrl as! URL)
                 
                 cell.posterView.setImageWith(imageRequest as URLRequest, placeholderImage: nil,
                     success: { (imageRequest, imageResponse, image) -> Void in
